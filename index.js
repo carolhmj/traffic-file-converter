@@ -4,6 +4,10 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
 
+// Constants
+
+const TIME_INTERVAL = 100; // interval between two points on a trajectory, in ms
+
 // console.log('args', process.argv);
 // 1 - Load the provided traffic simulation file
 if (process.argv.length < 3) {
@@ -46,10 +50,10 @@ fs.createReadStream(filePath)
             const line = results[i];
             const currPoint = {};
 
-            currPoint.t = line.id; // traj id
+            currPoint.t = Number(line.id); // traj id
             currPoint.p = i; // point id
-            currPoint.s = line['#time']; // timestamp
-            currPoint.c = [line['lastX[pixel]'], line['lastY[pixel]']]; // pixel coordinates
+            currPoint.s = Number(line['#time']) * TIME_INTERVAL; // timestamp
+            currPoint.c = [Number(line['lastX[pixel]']), Number(line['lastY[pixel]'])]; // pixel coordinates
             currPoint.a = -1; // previous point on traj
             currPoint.n = -1; // next point on traj
             currPoint.v = 0; // instantaneous speed
@@ -112,10 +116,12 @@ fs.createReadStream(filePath)
         const pointsOutFilePath = "./out/simPoints_" + baseName + ".js";
         const trajsOutFilePath = "./out/simTrajs_" + baseName + ".js";
 
-        let stringPts = JSON.stringify(convertedPoints);
+        let stringPts = "var pointsList =\n"; 
+        stringPts += JSON.stringify(convertedPoints);
         stringPts += ";\nvar minTimeStamp = 0;"
 
-        const stringTrajs = JSON.stringify(convertedTrajs);
+        let stringTrajs = "var trajsList = \n"; 
+        stringTrajs += JSON.stringify(convertedTrajs);
 
         fs.writeFile(pointsOutFilePath, stringPts, () => {
             console.log('Wrote points file as', pointsOutFilePath);
