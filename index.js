@@ -45,7 +45,7 @@ fs.createReadStream(filePath)
             // interval }
         };
         
-
+        let lastTimeStamp = 0;
         for (let i = 0; i < results.length; i++) {
             const line = results[i];
             const currPoint = {};
@@ -53,6 +53,7 @@ fs.createReadStream(filePath)
             currPoint.t = Number(line.id); // traj id
             currPoint.p = i; // point id
             currPoint.s = Number(line['#time']) * TIME_INTERVAL; // timestamp
+            lastTimeStamp = Math.max(lastTimeStamp, currPoint.s);
             currPoint.c = [Number(line['lastX[pixel]']), Number(line['lastY[pixel]'])]; // pixel coordinates
             currPoint.a = -1; // previous point on traj
             currPoint.n = -1; // next point on traj
@@ -113,21 +114,16 @@ fs.createReadStream(filePath)
 
         // 4 - Write out the converted data to the output
         const baseName = path.basename(filePath, '.txt');
-        const pointsOutFilePath = "./out/simPoints_" + baseName + ".js";
-        const trajsOutFilePath = "./out/simTrajs_" + baseName + ".js";
+        const outFilePath = "./out/sim_" + baseName + ".json";
 
-        let stringPts = "var pointsList =\n"; 
-        stringPts += JSON.stringify(convertedPoints);
-        stringPts += ";\nvar minTimeStamp = 0;"
-
-        let stringTrajs = "var trajsList = \n"; 
-        stringTrajs += JSON.stringify(convertedTrajs);
-
-        fs.writeFile(pointsOutFilePath, stringPts, () => {
-            console.log('Wrote points file as', pointsOutFilePath);
-        });
-
-        fs.writeFile(trajsOutFilePath, stringTrajs, () => {
-            console.log('Wrote trajs out file as', trajsOutFilePath);
+        const finalObject = {
+            pointsList: convertedPoints,
+            trajsList: convertedTrajs,
+            minTimeStamp: 0,
+            maxTimeStamp: lastTimeStamp
+        }
+        const stringFinal = JSON.stringify(finalObject);
+        fs.writeFile(outFilePath, stringFinal, () => {
+            console.log('Wrote final file as' + outFilePath);
         });
     });
