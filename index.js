@@ -57,7 +57,8 @@ fs.createReadStream(filePath)
             currPoint.c = [Number(line['lastX[pixel]']), Number(line['lastY[pixel]'])]; // pixel coordinates
             currPoint.a = -1; // previous point on traj
             currPoint.n = -1; // next point on traj
-            currPoint.v = 0; // instantaneous speed
+            //currPoint.v = 0; // instantaneous speed
+            currPoint.v = line['speed[m/s]'] * 5/18; // speed in km/h
 
             if (trajRecords[currPoint.t] !== undefined) {
                 const prevPoint = trajRecords[currPoint.t].prevPt;
@@ -68,10 +69,10 @@ fs.createReadStream(filePath)
                 const d = dist(prevPoint.c[0], prevPoint.c[1], currPoint.c[0], currPoint.c[1]);
                 prevPoint.d = d; // distance to next point
 
-                const timeDiff = currPoint.s - prevPoint.s;
+                const timeDiff = (currPoint.s - prevPoint.s) / TIME_INTERVAL;
                 const instSpeed = d / timeDiff; // update instantaneous speed
-
-                currPoint.v = instSpeed; 
+                
+                //currPoint.v = instSpeed; 
             } else {
                 // This is the first point on the traj
                 trajRecords[currPoint.t] = {
